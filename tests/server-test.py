@@ -23,7 +23,7 @@ async def test_server_connection():
     await asyncio.sleep(1)
 
     # Create a TCP socket to connect to the server
-    reader, writer = await asyncio.open_connection('127.0.0.1', 6379)
+    reader, writer = await asyncio.open_connection('127.0.0.1', 6380)
 
     # Read the welcome message from the server
     data = await reader.read(100)
