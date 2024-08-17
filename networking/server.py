@@ -49,3 +49,32 @@ if __name__ == "__main__":
     main()
 
 
+# Server started and listening for connections
+# [Main Thread] Accepted connection from ('127.0.0.1', 54651)
+# [Main Thread] Starting thread Thread-1 (handle_client) for ('127.0.0.1', 54651)
+# [Thread-1 (handle_client)] Handling connection from ('127.0.0.1', 54651)
+# [Thread-1 (handle_client)] Received data: PING from ('127.0.0.1', 54651)
+# [Thread-1 (handle_client)] Sending PONG to ('127.0.0.1', 54651)
+# [Main Thread] Accepted connection from ('127.0.0.1', 54652)
+# [Main Thread] Starting thread Thread-2 (handle_client) for ('127.0.0.1', 54652)
+# [Thread-1 (handle_client)] No data received. Closing connection with ('127.0.0.1', 54651)
+# [Thread-1 (handle_client)] Connection with ('127.0.0.1', 54651) closed
+# [Thread-2 (handle_client)] Handling connection from ('127.0.0.1', 54652)
+# [Main Thread] Accepted connection from ('127.0.0.1', 54653)
+# [Main Thread] Starting thread Thread-3 (handle_client) for ('127.0.0.1', 54653)
+# [Thread-2 (handle_client)] Received data: PING from ('127.0.0.1', 54652)
+# [Thread-3 (handle_client)] Handling connection from ('127.0.0.1', 54653)
+# [Thread-2 (handle_client)] Sending PONG to ('127.0.0.1', 54652)
+# [Main Thread] Accepted connection from ('127.0.0.1', 54654)
+# [Thread-3 (handle_client)] Received data: PING from ('127.0.0.1', 54653)
+# [Thread-3 (handle_client)] Sending PONG to ('127.0.0.1', 54653)
+# [Main Thread] Starting thread Thread-4 (handle_client) for ('127.0.0.1', 54654)
+# [Thread-2 (handle_client)] No data received. Closing connection with ('127.0.0.1', 54652)
+# [Thread-2 (handle_client)] Connection with ('127.0.0.1', 54652) closed
+# [Thread-4 (handle_client)] Handling connection from ('127.0.0.1', 54654)
+# [Thread-4 (handle_client)] Received data: PING from ('127.0.0.1', 54654)
+# [Thread-4 (handle_client)] Sending PONG to ('127.0.0.1', 54654)
+# [Thread-3 (handle_client)] No data received. Closing connection with ('127.0.0.1', 54653)
+# [Thread-3 (handle_client)] Connection with ('127.0.0.1', 54653) closed
+# [Thread-4 (handle_client)] No data received. Closing connection with ('127.0.0.1', 54654)
+# [Thread-4 (handle_client)] Connection with ('127.0.0.1', 54654) closed
