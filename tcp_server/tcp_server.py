@@ -6,7 +6,7 @@ REQUEST_QUEUE_SIZE = 5
 
 def handle_client(client_connection):
     request_data = client_connection.recv(1024)
-    print(f"Received data: {request_data.decode()}")
+    print(f"Received data from our client: {request_data.decode()}")
     
     # Send a simple response back to the client
     response = b"HTTP/1.1 200 OK\n\nHello, World!"

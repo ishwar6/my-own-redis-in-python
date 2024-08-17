@@ -15,7 +15,7 @@ def start_client():
         
         # Receive a response
         data = sock.recv(1024)
-        print(f"Received response: {data.decode()}")
+        print(f"CLIENT: Received response from the server: {data.decode()}")
     finally:
         # Close the socket
         sock.close()
