@@ -18,3 +18,8 @@ In addition to handling multiple commands from the same client, Redis servers ar
 
 To implement this, you'll need to either use threads, or, if you're feeling adventurous, an Event Loop (like the official Redis implementation does).
 
+These two will be sent concurrently so that we test your server's ability to handle concurrent clients.
+$ redis-cli PING
+$ redis-cli PING
+
+
