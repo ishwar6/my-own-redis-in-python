@@ -1,12 +1,29 @@
+import sys
+import os
 import asyncio
-import socket
 import pytest
+import socket
 
-# Test function to connect to the Redis server and check for the welcome message
+# Add the project root to PYTHONPATH
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from networking.server import RedisServer
+
+@pytest.fixture(scope="module", autouse=True)
+def start_server():
+    # Run the server in the background
+    loop = asyncio.get_event_loop()
+    server_task = loop.create_task(RedisServer().main())
+    yield  # This yields control back to the test
+    server_task.cancel()  # Stop the server after the test completes
+
 @pytest.mark.asyncio
 async def test_server_connection():
-    # Create a TCP socket
-    reader, writer = await asyncio.open_connection('127.0.0.1', 6370)
+    # Allow the server some time to start up
+    await asyncio.sleep(1)
+
+    # Create a TCP socket to connect to the server
+    reader, writer = await asyncio.open_connection('127.0.0.1', 6379)
 
     # Read the welcome message from the server
     data = await reader.read(100)
@@ -18,11 +35,3 @@ async def test_server_connection():
     # Close the connection
     writer.close()
     await writer.wait_closed()
-
-# Running the server in background for testing
-from .networking.server import RedisServer
-
-@pytest.fixture(scope="module", autouse=True)
-def start_server():
-    redis_server = RedisServer()
-    asyncio.run(redis_server.main())
