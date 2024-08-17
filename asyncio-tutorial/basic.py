@@ -27,3 +27,11 @@ if __name__ == "__main__":
 # This means the two coroutines are executed sequentially, one after the other, not concurrently.
 
 
+# HOW TO ACHIEVE CONCURRENCY??
+
+# async def main() -> None:
+#     # Schedule both coroutines concurrently
+#     await asyncio.gather(do_io(), do_something_else())
+
+# if __name__ == "__main__":
+#     asyncio.run(main())
