@@ -37,10 +37,10 @@ class RequestHandler:
 
 
 
-if __name__ == "__main__":
-    a = Server()
-    a.start()
-    a.accept_connections()
+# if __name__ == "__main__":
+#     a = Server()
+#     a.start()
+#     a.accept_connections()
 
 # Blocking I/O:
 
@@ -62,11 +62,10 @@ if __name__ == "__main__":
 
 ## Updated code if we use Threading. 
 
-import socket
-import logging
+
 import threading
 
-class Server:
+class ThreadServer:
     def __init__(self, host: str = "127.0.0.1", port: int = 3100):
         self.host = host
         self.port = port
@@ -107,9 +106,49 @@ class RequestHandler:
         self.conn.sendall(b"HTTP/1.1 200 OK\n\nHello, World!")
 
 
+# if __name__ == "__main__":
+#     logging.basicConfig(level=logging.INFO)
+#     server = ThreadServer()
+#     server.start()
+
+
+# Implementation by Using asyncio
+
+import asyncio
+
+class AsyncServer:
+    def __init__(self, host: str = "127.0.0.1", port: int = 3100):
+        self.host = host
+        self.port = port
+
+    async def handle_client(self, reader, writer):
+        addr = writer.get_extra_info('peername')
+        logging.info(f"Connected by {addr}")
+
+        request = await reader.read(1024)
+        logging.info(f"Received request: {request.decode('utf-8')}")
+
+        response = b"HTTP/1.1 200 OK\n\nHello, World!"
+        writer.write(response)
+        await writer.drain()
+
+        logging.info(f"Connection with {addr} closed")
+        writer.close()
+        await writer.wait_closed()
+
+    async def start(self):
+        server = await asyncio.start_server(
+            self.handle_client, self.host, self.port)
+
+        addr = server.sockets[0].getsockname()
+        print(f"Server started at http://{addr}")
+
+        async with server:
+            await server.serve_forever()
+
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    server = Server()
-    server.start()
-
-
+    server = AsyncServer()
+    asyncio.run(server.start())
