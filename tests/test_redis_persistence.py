@@ -53,3 +53,27 @@ class TestRedisServer(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+
+# How to Run the Tests:
+
+# Start the Redis-like server:
+# Make sure your server is running by executing your server script:
+
+# python server.py --dir /tmp/redis-data --dbfilename rdbfile
+
+
+# Run the tests:
+
+# Execute the test file using Python's unittest module:
+ 
+# python test_redis_presistence.py
+# (env) ~/Desktop/work/my-own-redis-in-python/tests  python test_redis_persistence.py
+# ......
+# ----------------------------------------------------------------------
+# Ran 6 tests in 0.219s
+
+# OK
+# (env) ~/Desktop/work/my-own-redis-in-python/tests  
