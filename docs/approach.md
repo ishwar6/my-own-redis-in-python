@@ -65,3 +65,13 @@ The keys, values and expiry times used in the tests will be random, so you won't
 
 https://redis.io/docs/latest/commands/set/
 
+
+Stage - 8: Code Refactoring
+To clean up the code and make it more Pythonic according to clean code standards, we have to follow these steps:
+
+Modularize the code: Break the code into smaller, reusable functions and classes.
+Use context managers: Handle socket connections and client sessions using context managers.
+Separate responsibilities: Split the code into separate classes and methods to follow the single responsibility principle.
+Improve readability: Add comments and docstrings where necessary, and refactor variable names for clarity.
+
+
