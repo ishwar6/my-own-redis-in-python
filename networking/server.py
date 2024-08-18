@@ -1,8 +1,10 @@
 import socket
 import threading
+import time
 
-# In-memory store for key-value pairs
+# In-memory store for key-value pairs and their expiration times
 store = {}
+expiration_store = {}
 
 def parse_resp(data: str):
     """
@@ -28,10 +30,11 @@ def parse_resp(data: str):
     return None
 
 def handle_client(conn, addr):
-    global store   
+    global store, expiration_store
     try:
         while True:
             request: bytes = conn.recv(512)
+            print(request)
             if not request:
                 break
 
@@ -48,12 +51,32 @@ def handle_client(conn, addr):
                 message = command[1]
                 resp_message = f"${len(message)}\r\n{message}\r\n"
                 conn.send(resp_message.encode())
-            elif cmd_name == "set" and len(command) == 3:
+            elif cmd_name == "set":
                 key, value = command[1], command[2]
+                expiration_time = None
+                if len(command) >= 5 and command[3].lower() == "px":
+                    try:
+                        expiration_time = int(command[4])
+                    except ValueError:
+                        conn.send(b"-ERR invalid expiration time\r\n")
+                        continue
+                
                 store[key] = value
+                if expiration_time:
+                    # Store expiration time in milliseconds
+                    expiration_store[key] = time.time() * 1000 + expiration_time  
                 conn.send(b"+OK\r\n")
-            elif cmd_name == "get" and len(command) == 2:
+            elif cmd_name == "get":
                 key = command[1]
+                if key in expiration_store:
+                    current_time = time.time() * 1000
+                    if current_time >= expiration_store[key]:
+                        # Key has expired
+                        del store[key]
+                        del expiration_store[key]
+                        conn.send(b"$-1\r\n")
+                        continue
+                
                 value = store.get(key)
                 if value is None:
                     conn.send(b"$-1\r\n")

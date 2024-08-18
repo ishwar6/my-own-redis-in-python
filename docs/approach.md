@@ -50,3 +50,18 @@ The SET command supports a number of extra options like EX (expiry time in secon
 Just like the previous stage, the values used for keys and values will be random, so you won't be able to hardcode the response to pass this stage.
 If a key doesn't exist, the GET command should return a "null bulk string" ($-1\r\n). We won't explicitly test this in this stage, but you'll need it for the next stage (expiry).
 
+Stage 7: Expiry
+In this stage, you'll add support for setting a key with an expiry.
+
+The expiry for a key can be provided using the "PX" argument to the SET command. The expiry is provided in milliseconds.
+
+$ redis-cli SET foo bar px 100 # Sets the key "foo" to "bar" with an expiry of 100 milliseconds
+OK
+After the key has expired, a GET command for that key should return a "null bulk string" ($-1\r\n).
+
+
+Just like command names, command arguments are also case-insensitive. So PX, px and pX are all valid.
+The keys, values and expiry times used in the tests will be random, so you won't be able to hardcode a response to pass this stage.
+
+https://redis.io/docs/latest/commands/set/
+
