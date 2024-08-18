@@ -23,3 +23,24 @@ $ redis-cli PING
 $ redis-cli PING
 
 
+Stage 5: 
+In this stage, you'll add support for the ECHO command.
+
+ECHO is a command like PING that's used for testing and debugging. It accepts a single argument and returns it back as a RESP bulk string.
+
+$ redis-cli PING # The command you implemented in previous stages
+PONG
+$ redis-cli ECHO hey # The command you'll implement in this stage
+hey
+We suggest that you implement a proper Redis protocol parser in this stage. It'll come in handy in later stages.
+Redis command names are case-insensitive, so ECHO, echo and EcHo are all valid commands.
+The tester will send a random string as an argument to the ECHO command, so you won't be able to hardcode the response to pass this stage.
+The exact bytes your program will receive won't be just ECHO hey, you'll receive something like this: *2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n. That's ["ECHO", "hey"] encoded using the Redis protocol.
+(https://redis.io/docs/latest/develop/reference/protocol-spec/)
+You can read more about how "commands" are handled in the Redis protocol here. (https://redis.io/docs/latest/develop/reference/protocol-spec/#sending-commands-to-a-redis-server)
+
+"Clients send commands to a Redis server as an array of bulk strings. The first (and sometimes also the second) bulk string in the array is the command's name. Subsequent elements of the array are the arguments for the command."
+
+"The server replies with a RESP type. The reply's type is determined by the command's implementation and possibly by the client's protocol version."
+
+
