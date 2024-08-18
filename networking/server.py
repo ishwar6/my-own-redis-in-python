@@ -62,3 +62,31 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def test_parse_resp():
+    # Test case 1: Simple PING command
+    data = "*1\r\n$4\r\nPING\r\n"
+    assert parse_resp(data) == ["PING"]
+
+    # Test case 2: ECHO command with a single argument
+    data = "*2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n"
+    assert parse_resp(data) == ["ECHO", "hey"]
+
+    # Test case 3: ECHO command with multiple arguments
+    data = "*3\r\n$4\r\nECHO\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
+    assert parse_resp(data) == ["ECHO", "hello", "world"]
+
+    # Test case 4: Empty input (invalid)
+    data = ""
+    assert parse_resp(data) is None
+
+    # Test case 5: Incorrect RESP format
+    data = "*1\r\n$4\r\nINCORRECT_FORMAT\r\n"
+    assert parse_resp(data) == ["INCORRECT_FORMAT"]
+
+    print("All tests passed!")
+
+
+# Run the tests
+test_parse_resp()
