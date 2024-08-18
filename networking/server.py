@@ -191,6 +191,7 @@ class RedisServer:
 def main():
     server = RedisServer()
     server.start()
+    
 
 if __name__ == "__main__":
     main()
