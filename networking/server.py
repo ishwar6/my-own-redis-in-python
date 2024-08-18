@@ -28,10 +28,9 @@ def parse_resp(data: str):
     return None
 
 def handle_client(conn, addr):
-    # we are storing key value pair here. 
-    global store 
-    while True:
-        try:
+    global store   
+    try:
+        while True:
             request: bytes = conn.recv(512)
             if not request:
                 break
@@ -61,20 +60,26 @@ def handle_client(conn, addr):
                 else:
                     resp_message = f"${len(value)}\r\n{value}\r\n"
                     conn.send(resp_message.encode())
-        except ConnectionResetError:
-            break
-    
+    except ConnectionResetError:
+        pass
+    finally:
+        conn.close()  
+
 def main():
     print("Logs will appear here")
 
-    server_socket = socket.create_server(("localhost", 6379), reuse_port=True)
+    server_socket = socket.create_server(("localhost", 6380), reuse_port=True)
     server_socket.listen()
 
-    while True:
-        conn, addr = server_socket.accept()
-        client_thread = threading.Thread(target=handle_client, args=(conn, addr))
-        client_thread.daemon = True
-        client_thread.start()
+    try:
+        while True:
+            conn, addr = server_socket.accept()
+            client_thread = threading.Thread(target=handle_client, args=(conn, addr))
+            client_thread.daemon = True
+            client_thread.start()
+    finally:
+        # Ensure the server socket is closed on exit
+        server_socket.close()  
 
 
 if __name__ == "__main__":
