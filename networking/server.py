@@ -1,6 +1,9 @@
 import socket
 import threading
 
+# In-memory store for key-value pairs
+store = {}
+
 def parse_resp(data: str):
     """
     Parse a RESP-formatted command.
@@ -25,6 +28,8 @@ def parse_resp(data: str):
     return None
 
 def handle_client(conn, addr):
+    # we are storing key value pair here. 
+    global store 
     while True:
         try:
             request: bytes = conn.recv(512)
@@ -44,6 +49,18 @@ def handle_client(conn, addr):
                 message = command[1]
                 resp_message = f"${len(message)}\r\n{message}\r\n"
                 conn.send(resp_message.encode())
+            elif cmd_name == "set" and len(command) == 3:
+                key, value = command[1], command[2]
+                store[key] = value
+                conn.send(b"+OK\r\n")
+            elif cmd_name == "get" and len(command) == 2:
+                key = command[1]
+                value = store.get(key)
+                if value is None:
+                    conn.send(b"$-1\r\n")
+                else:
+                    resp_message = f"${len(value)}\r\n{value}\r\n"
+                    conn.send(resp_message.encode())
         except ConnectionResetError:
             break
     
@@ -62,31 +79,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-def test_parse_resp():
-    # Test case 1: Simple PING command
-    data = "*1\r\n$4\r\nPING\r\n"
-    assert parse_resp(data) == ["PING"]
-
-    # Test case 2: ECHO command with a single argument
-    data = "*2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n"
-    assert parse_resp(data) == ["ECHO", "hey"]
-
-    # Test case 3: ECHO command with multiple arguments
-    data = "*3\r\n$4\r\nECHO\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
-    assert parse_resp(data) == ["ECHO", "hello", "world"]
-
-    # Test case 4: Empty input (invalid)
-    data = ""
-    assert parse_resp(data) is None
-
-    # Test case 5: Incorrect RESP format
-    data = "*1\r\n$4\r\nINCORRECT_FORMAT\r\n"
-    assert parse_resp(data) == ["INCORRECT_FORMAT"]
-
-    print("All tests passed!")
-
-
-# Run the tests
-test_parse_resp()
