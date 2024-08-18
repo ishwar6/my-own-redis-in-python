@@ -167,7 +167,6 @@ $ redis-cli XADD stream_key 0-1 foo bar
 
 Server should respond with $3\r\n0-1\r\n, which is 0-1 encoded as a RESP bulk string.
 
- 
 
 $ redis-cli TYPE stream_key
 "stream"
@@ -175,3 +174,44 @@ Server should respond with +stream\r\n, which is stream encoded as a RESP simple
 
  
 we still need to handle the "string" and "none" return values for the TYPE command. "stream" should only be returned for keys that are streams.
+
+Stage-12 : Replication: Info command
+In this extension, you'll extend your Redis server to support leader-follower replication. You'll be able to run multiple Redis servers with one acting as the "master" and the others as "replicas". Changes made to the master will be automatically replicated to replicas.
+
+Since we'll need to run multiple instances of your Redis server at once, we can't run all of them on port 6379.
+
+In this stage, we'll add support for starting the Redis server on a custom port. The port number will be passed to your program via the --port flag.
+
+The INFO command returns information and statistics about a Redis server. In this stage, we'll add support for the replication section of the INFO command.
+
+The replication section
+When you run the INFO command against a Redis server, you'll see something like this:
+
+$ redis-cli INFO replication
+# Replication
+role:master
+connected_slaves:0
+master_replid:8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb
+master_repl_offset:0
+second_repl_offset:-1
+repl_backlog_active:0
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:0
+repl_backlog_histlen:
+The reply to this command is a Bulk string where each line is a key value pair, separated by ":".
+
+Here are what some of the important fields mean:
+
+role: The role of the server (master or slave)
+connected_slaves: The number of connected replicas
+master_replid: The replication ID of the master (we'll get to this in later stages)
+master_repl_offset: The replication offset of the master (we'll get to this in later stages)
+In this stage, you'll only need to support the role key. We'll add support for other keys in later stages.
+ 
+ 
+ 
+In the response for the INFO command, only need to support the role key for this stage. We'll add support for the other keys in later stages.
+The # Replication heading in the response is optional, you can ignore it.
+The response to INFO needs to be encoded as a Bulk string.
+An example valid response would be $11\r\nrole:master\r\n (the string role:master encoded as a Bulk string)
+ 

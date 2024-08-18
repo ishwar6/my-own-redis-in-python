@@ -1,6 +1,7 @@
 import socket
 import threading
 import time
+import argparse
 
 class InMemoryStore:
     """
@@ -8,8 +9,7 @@ class InMemoryStore:
     """
     def __init__(self):
         self.store = {}
-        # Store the type of each key
-        self.type_store = {}  
+        self.type_store = {}  # Store the type of each key
         self.expiration_store = {}
 
     def set(self, key, value, expiration_time=None):
@@ -17,10 +17,9 @@ class InMemoryStore:
         Store a key-value pair with an optional expiration time.
         """
         self.store[key] = value
-        # Assume all values are strings for now
-        self.type_store[key] = "string"  
+        self.type_store[key] = "string"  # Assume all values are strings for now
         if expiration_time:
-            self.expiration_store[key] = time.time() * 1000 + expiration_time  
+            self.expiration_store[key] = time.time() * 1000 + expiration_time  # Store expiration time in milliseconds
 
     def get(self, key):
         """
@@ -95,6 +94,7 @@ class RedisServer:
         self.store = InMemoryStore()
         self.host = host
         self.port = port
+        self.role = "master"  # Set the role to master for now
 
     def start(self):
         """
@@ -141,6 +141,8 @@ class RedisServer:
             self.handle_type_command(conn, command)
         elif cmd_name == "xadd":
             self.handle_xadd_command(conn, command)
+        elif cmd_name == "info":
+            self.handle_info_command(conn, command)
 
     def handle_set_command(self, conn, command):
         """
@@ -182,16 +184,30 @@ class RedisServer:
         """
         key = command[1]
         entry_id = command[2]
-        # Convert remaining arguments to key-value pairs
-        fields = dict(zip(command[3::2], command[4::2]))  
+        fields = dict(zip(command[3::2], command[4::2]))  # Convert remaining arguments to key-value pairs
 
         added_entry_id = self.store.add_stream_entry(key, entry_id, fields)
         conn.send(f"${len(added_entry_id)}\r\n{added_entry_id}\r\n".encode())
 
+    def handle_info_command(self, conn, command):
+        """
+        Handle the INFO command and return the replication information.
+        """
+        if len(command) > 1 and command[1].lower() == "replication":
+            # Respond with role:master as a Bulk string
+            response = "role:master"
+            conn.send(f"${len(response)}\r\n{response}\r\n".encode())
+        else:
+            # we will add handling for other sections here  
+            conn.send(b"$-1\r\n")
+
 def main():
-    server = RedisServer()
+    parser = argparse.ArgumentParser(description="Redis-like server")
+    parser.add_argument("--port", type=int, default=6379, help="Port to start the server on (default: 6379)")
+    args = parser.parse_args()
+
+    server = RedisServer(port=args.port)
     server.start()
-    
 
 if __name__ == "__main__":
     main()
