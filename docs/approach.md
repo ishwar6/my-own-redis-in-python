@@ -75,3 +75,54 @@ Separate responsibilities: Split the code into separate classes and methods to f
 Improve readability: Add comments and docstrings where necessary, and refactor variable names for clarity.
 
 
+Stage-9: RDB Persistence
+In this stage, you'll add support for two configuration parameters related to RDB persistence, as well as the CONFIG GET command.
+
+RDB files
+An RDB file is a point-in-time snapshot of a Redis dataset. When RDB persistence is enabled, the Redis server syncs its in-memory state with an RDB file, by doing the following:
+
+On startup, the Redis server loads the data from the RDB file.
+While running, the Redis server periodically takes new snapshots of the dataset, in order to update the RDB file.
+dir and dbfilename
+The configuration parameters dir and dbfilename specify where an RDB file is stored:
+
+dir - the path to the directory where the RDB file is stored (example: /tmp/redis-data)
+dbfilename - the name of the RDB file (example: rdbfile)
+The CONFIG GET command
+The CONFIG GET command returns the values of configuration parameters.
+
+It takes in one or more configuration parameters and returns a RESP array of key-value pairs:
+
+$ redis-cli CONFIG GET dir
+1) "dir"
+2) "/tmp/redis-data"
+Although CONFIG GET can fetch multiple parameters at a time, the tester will only send CONFIG GET commands with one parameter at a time.
+
+You don't need to read the RDB file in this stage, you only need to store dir and dbfilename. Reading from the file will be covered in later stages.
+
+
+Stage - 10
+You can remove persistence logic now and go back to stage-8 code to maintain simplicity
+
+In this stage, you'll add support for the TYPE command.
+
+The TYPE command
+The TYPE command returns the type of value stored at a given key.
+
+It returns one of the following types: string, list, set, zset, hash, and stream.
+
+Here's how it works:
+
+$ redis-cli SET some_key foo
+"OK"
+$ redis-cli TYPE some_key
+"string"
+If a key doesn't exist, the return value will be "none".
+
+$ redis-cli TYPE missing_key
+"none"
+The return value is encoded as a simple string 
+https://redis.io/docs/latest/develop/reference/protocol-spec/#simple-strings
+
+For now, you only need to handle the "string" and "none" types. We'll add support for the "stream" type in the next stage.
+

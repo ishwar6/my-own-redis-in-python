@@ -1,14 +1,14 @@
 import socket
 import threading
 import time
-import argparse
 
 class InMemoryStore:
     """
-    Class to handle the storage of key-value pairs and their expiration times.
+    Class to handle the storage of key-value pairs, their types, and expiration times.
     """
     def __init__(self):
         self.store = {}
+        self.type_store = {}  # Store the type of each key
         self.expiration_store = {}
 
     def set(self, key, value, expiration_time=None):
@@ -16,8 +16,10 @@ class InMemoryStore:
         Store a key-value pair with an optional expiration time.
         """
         self.store[key] = value
+         # we are going to assume all values are strings for now
+        self.type_store[key] = "string" 
         if expiration_time:
-            self.expiration_store[key] = time.time() * 1000 + expiration_time   
+            self.expiration_store[key] = time.time() * 1000 + expiration_time  
 
     def get(self, key):
         """
@@ -35,8 +37,17 @@ class InMemoryStore:
         """
         if key in self.store:
             del self.store[key]
+        if key in self.type_store:
+            del self.type_store[key]
         if key in self.expiration_store:
             del self.expiration_store[key]
+
+    def get_type(self, key):
+        """
+        Retrieve the type of the value stored at the given key.
+        """
+        return self.type_store.get(key, "none")
+
 
 class RESPParser:
     """
@@ -63,16 +74,15 @@ class RESPParser:
                 i += 1
         return elements if len(elements) == num_elements else None
 
+
 class RedisServer:
     """
     Class to represent the Redis-like server, handling client connections and commands.
     """
-    def __init__(self, host="localhost", port=6380, rdb_dir="/tmp/redis-data", rdb_filename="rdbfile"):
+    def __init__(self, host="localhost", port=6380):
         self.store = InMemoryStore()
         self.host = host
         self.port = port
-        self.rdb_dir = rdb_dir
-        self.rdb_filename = rdb_filename
 
     def start(self):
         """
@@ -95,7 +105,6 @@ class RedisServer:
                     request = conn.recv(512)
                     if not request:
                         break
-                    print(request)
                     command = RESPParser.parse(request.decode())
                     if command:
                         self.process_command(conn, command)
@@ -116,8 +125,8 @@ class RedisServer:
             self.handle_set_command(conn, command)
         elif cmd_name == "get":
             self.handle_get_command(conn, command)
-        elif cmd_name == "config":
-            self.handle_config_command(conn, command)
+        elif cmd_name == "type":
+            self.handle_type_command(conn, command)
 
     def handle_set_command(self, conn, command):
         """
@@ -145,30 +154,17 @@ class RedisServer:
         else:
             conn.send(f"${len(value)}\r\n{value}\r\n".encode())
 
-    def handle_config_command(self, conn, command):
+    def handle_type_command(self, conn, command):
         """
-        Handle the CONFIG GET command for retrieving configuration parameters.
+        Handle the TYPE command, returning the type of the value stored at the key.
         """
-        if len(command) >= 3 and command[1].lower() == "get":
-            param = command[2].lower()
-            if param == "dir":
-                response = f"*2\r\n$3\r\ndir\r\n${len(self.rdb_dir)}\r\n{self.rdb_dir}\r\n"
-            elif param == "dbfilename":
-                response = f"*2\r\n$10\r\ndbfilename\r\n${len(self.rdb_filename)}\r\n{self.rdb_filename}\r\n"
-            else:
-                # Respond with null if the parameter is unknown
-                response = "$-1\r\n"  
-            conn.send(response.encode())
+        key = command[1]
+        value_type = self.store.get_type(key)
+        conn.send(f"+{value_type}\r\n".encode())
+
 
 def main():
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Start a Redis-like server with RDB persistence.")
-    parser.add_argument("--dir", default="/tmp/redis-data", help="Directory for RDB file")
-    parser.add_argument("--dbfilename", default="rdbfile", help="RDB filename")
-    args = parser.parse_args()
-
-    # Initialize the server with command-line arguments
-    server = RedisServer(rdb_dir=args.dir, rdb_filename=args.dbfilename)
+    server = RedisServer()
     server.start()
 
 if __name__ == "__main__":
