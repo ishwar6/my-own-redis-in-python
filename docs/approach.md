@@ -176,11 +176,11 @@ Server should respond with +stream\r\n, which is stream encoded as a RESP simple
 we still need to handle the "string" and "none" return values for the TYPE command. "stream" should only be returned for keys that are streams.
 
 Stage-12 : Replication: Info command
-In this extension, you'll extend your Redis server to support leader-follower replication. You'll be able to run multiple Redis servers with one acting as the "master" and the others as "replicas". Changes made to the master will be automatically replicated to replicas.
+In this extension, you'll extend The Redis server to support leader-follower replication. You'll be able to run multiple Redis servers with one acting as the "master" and the others as "replicas". Changes made to the master will be automatically replicated to replicas.
 
-Since we'll need to run multiple instances of your Redis server at once, we can't run all of them on port 6379.
+Since we'll need to run multiple instances of The Redis server at once, we can't run all of them on port 6379.
 
-In this stage, we'll add support for starting the Redis server on a custom port. The port number will be passed to your program via the --port flag.
+In this stage, we'll add support for starting the Redis server on a custom port. The port number will be passed to The program via the --port flag.
 
 The INFO command returns information and statistics about a Redis server. In this stage, we'll add support for the replication section of the INFO command.
 
@@ -214,4 +214,33 @@ In the response for the INFO command, only need to support the role key for this
 The # Replication heading in the response is optional, you can ignore it.
 The response to INFO needs to be encoded as a Bulk string.
 An example valid response would be $11\r\nrole:master\r\n (the string role:master encoded as a Bulk string)
+ 
+
+
+
+Stage -13  Replicaof and other details
+The --replicaof flag
+By default, a Redis server assumes the "master" role. When the --replicaof flag is passed, the server assumes the "slave" role instead.
+
+redis-cli -p <PORT> info replication
+we should respond with a Bulk string where each line is a key value pair separated by :. 
+The replication ID and offset   
+
+
+Part 2: 
+Every Redis master has a replication ID: it is a large pseudo random string. This is set when the master is booted. Every time a master instance restarts from scratch, its replication ID is reset.
+
+Each master also maintains a "replication offset" corresponding to how many bytes of commands have been added to the replication stream. We'll learn more about this offset in later stages. For now, just know that the value starts from 0 when a master is booted and no replicas have connected yet.
+
+In this stage, you'll initialize a replication ID and offset for The master:
+The ID can be any pseudo random alphanumeric string of 40 characters.
+For the purposes of this challenge, you don't need to actually generate a random string, you can hardcode it instead.
+As an example, you can hardcode 8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb as the replication ID.
+The offset is to be 0.
+These two values should be returned as part of the INFO command output, under the master_replid and master_repl_offset keys respectively.
+$ redis-cli INFO replication
+The program should respond with a Bulk string where each line is a key value pair separated by :.  
+
+master_replid, which should be a 40 character alphanumeric string
+master_repl_offset, which should be 0
  

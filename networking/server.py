@@ -53,7 +53,7 @@ class InMemoryStore:
         Add an entry to the stream stored at the key. If the stream doesn't exist, create it.
         """
         if key not in self.store:
-            self.store[key] = []  # Initialize an empty list for the stream
+            self.store[key] = []  
             self.type_store[key] = "stream"
         
         stream = self.store[key]
@@ -90,11 +90,15 @@ class RedisServer:
     """
     Class to represent the Redis-like server, handling client connections and commands.
     """
-    def __init__(self, host="localhost", port=6379):
+    def __init__(self, host="localhost", port=6379, role="master"):
         self.store = InMemoryStore()
         self.host = host
         self.port = port
-        self.role = "master"  # Set the role to master for now
+        self.role = role  # Role can be either 'master' or 'slave'
+        
+        # Initialize replication-related values
+        self.master_replid = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb"  # Hardcoded replication ID
+        self.master_repl_offset = 0  # Start at offset 0
 
     def start(self):
         """
@@ -102,7 +106,7 @@ class RedisServer:
         """
         with socket.create_server((self.host, self.port), reuse_port=True) as server_socket:
             server_socket.listen()
-            print(f"Server started on {self.host}:{self.port}. Logs will appear here.")
+            print(f"Server started on {self.host}:{self.port}. Role: {self.role}")
             while True:
                 conn, addr = server_socket.accept()
                 threading.Thread(target=self.handle_client, args=(conn, addr), daemon=True).start()
@@ -184,7 +188,7 @@ class RedisServer:
         """
         key = command[1]
         entry_id = command[2]
-        fields = dict(zip(command[3::2], command[4::2]))  # Convert remaining arguments to key-value pairs
+        fields = dict(zip(command[3::2], command[4::2]))  
 
         added_entry_id = self.store.add_stream_entry(key, entry_id, fields)
         conn.send(f"${len(added_entry_id)}\r\n{added_entry_id}\r\n".encode())
@@ -194,19 +198,28 @@ class RedisServer:
         Handle the INFO command and return the replication information.
         """
         if len(command) > 1 and command[1].lower() == "replication":
-            # Respond with role:master as a Bulk string
-            response = "role:master"
+            # Build the replication information response
+            response_lines = [
+                f"role:{self.role}",
+                f"master_replid:{self.master_replid}",
+                f"master_repl_offset:{self.master_repl_offset}"
+            ]
+            response = "\r\n".join(response_lines)
             conn.send(f"${len(response)}\r\n{response}\r\n".encode())
         else:
-            # we will add handling for other sections here  
             conn.send(b"$-1\r\n")
 
 def main():
     parser = argparse.ArgumentParser(description="Redis-like server")
     parser.add_argument("--port", type=int, default=6379, help="Port to start the server on (default: 6379)")
+    parser.add_argument("--replicaof", nargs="+", metavar=('MASTER_HOST', 'MASTER_PORT'), help="Specify the master host and port for replication (e.g., 'localhost 6379')")
     args = parser.parse_args()
 
-    server = RedisServer(port=args.port)
+    # Determine the role of the server
+    role = "slave" if args.replicaof else "master"
+    
+    # Create and start the server
+    server = RedisServer(port=args.port, role=role)
     server.start()
 
 if __name__ == "__main__":
