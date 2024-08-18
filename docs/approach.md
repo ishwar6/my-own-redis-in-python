@@ -12,22 +12,22 @@ Stage 2: Give Pong
 Stage 3: A Redis server starts to listen for the next command as soon as it's done responding to the previous one. This allows Redis clients to send multiple commands using the same connection.
 
 Stage 4: 
-In this stage, you'll add support for multiple concurrent clients.
+In this stage, we'll add support for multiple concurrent clients.
 
 In addition to handling multiple commands from the same client, Redis servers are also designed to handle multiple clients at once.
 
-To implement this, you'll need to either use threads, or, if you're feeling adventurous, an Event Loop (like the official Redis implementation does).
+To implement this, we'll need to either use threads, or, if we're feeling adventurous, an Event Loop (like the official Redis implementation does).
 
-These two will be sent concurrently so that we test your server's ability to handle concurrent clients.
+These two will be sent concurrently so that we test wer server's ability to handle concurrent clients.
 $ redis-cli PING
 $ redis-cli PING
 
 
-Stage 5: In this stage, you'll add support for the ECHO command.
+Stage 5: In this stage, we'll add support for the ECHO command.
 
 ECHO is a command like PING that's used for testing and debugging. It accepts a single argument and returns it back as a RESP bulk string.
 
-$ redis-cli PING # The command you implemented in previous stages PONG $ redis-cli ECHO hey # The command you'll implement in this stage hey We suggest that you implement a proper Redis protocol parser in this stage. It'll come in handy in later stages. Redis command names are case-insensitive, so ECHO, echo and EcHo are all valid commands. The tester will send a random string as an argument to the ECHO command, so you won't be able to hardcode the response to pass this stage. The exact bytes your program will receive won't be just ECHO hey, you'll receive something like this: *2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n. That's ["ECHO", "hey"] encoded using the Redis protocol. (https://redis.io/docs/latest/develop/reference/protocol-spec/) You can read more about how "commands" are handled in the Redis protocol here. (https://redis.io/docs/latest/develop/reference/protocol-spec/#sending-commands-to-a-redis-server)
+$ redis-cli PING # The command we implemented in previous stages PONG $ redis-cli ECHO hey # The command we'll implement in this stage hey We suggest that we implement a proper Redis protocol parser in this stage. It'll come in handy in later stages. Redis command names are case-insensitive, so ECHO, echo and EcHo are all valid commands. The tester will send a random string as an argument to the ECHO command, so we won't be able to hardcode the response to pass this stage. The exact bytes wer program will receive won't be just ECHO hey, we'll receive something like this: *2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n. That's ["ECHO", "hey"] encoded using the Redis protocol. (https://redis.io/docs/latest/develop/reference/protocol-spec/) we can read more about how "commands" are handled in the Redis protocol here. (https://redis.io/docs/latest/develop/reference/protocol-spec/#sending-commands-to-a-redis-server)
 
 "Clients send commands to a Redis server as an array of bulk strings. The first (and sometimes also the second) bulk string in the array is the command's name. Subsequent elements of the array are the arguments for the command."
 
@@ -36,7 +36,7 @@ $ redis-cli PING # The command you implemented in previous stages PONG $ redis-c
 
 Stage 6: SET AND GET
 
-In this stage, you'll add support for the SET & GET commands.
+In this stage, we'll add support for the SET & GET commands.
 
 The SET command is used to set a key to a value. The GET command is used to retrieve the value of a key.
 
@@ -47,11 +47,11 @@ bar
 The SET command supports a number of extra options like EX (expiry time in seconds), PX (expiry time in milliseconds) and more. We won't cover these extra options in this stage. We'll get to them in later stages.
 
 
-Just like the previous stage, the values used for keys and values will be random, so you won't be able to hardcode the response to pass this stage.
-If a key doesn't exist, the GET command should return a "null bulk string" ($-1\r\n). We won't explicitly test this in this stage, but you'll need it for the next stage (expiry).
+Just like the previous stage, the values used for keys and values will be random, so we won't be able to hardcode the response to pass this stage.
+If a key doesn't exist, the GET command should return a "null bulk string" ($-1\r\n). We won't explicitly test this in this stage, but we'll need it for the next stage (expiry).
 
 Stage 7: Expiry
-In this stage, you'll add support for setting a key with an expiry.
+In this stage, we'll add support for setting a key with an expiry.
 
 The expiry for a key can be provided using the "PX" argument to the SET command. The expiry is provided in milliseconds.
 
@@ -61,7 +61,7 @@ After the key has expired, a GET command for that key should return a "null bulk
 
 
 Just like command names, command arguments are also case-insensitive. So PX, px and pX are all valid.
-The keys, values and expiry times used in the tests will be random, so you won't be able to hardcode a response to pass this stage.
+The keys, values and expiry times used in the tests will be random, so we won't be able to hardcode a response to pass this stage.
 
 https://redis.io/docs/latest/commands/set/
 
@@ -76,7 +76,7 @@ Improve readability: Add comments and docstrings where necessary, and refactor v
 
 
 Stage-9: RDB Persistence
-In this stage, you'll add support for two configuration parameters related to RDB persistence, as well as the CONFIG GET command.
+In this stage, we'll add support for two configuration parameters related to RDB persistence, as well as the CONFIG GET command.
 
 RDB files
 An RDB file is a point-in-time snapshot of a Redis dataset. When RDB persistence is enabled, the Redis server syncs its in-memory state with an RDB file, by doing the following:
@@ -98,13 +98,13 @@ $ redis-cli CONFIG GET dir
 2) "/tmp/redis-data"
 Although CONFIG GET can fetch multiple parameters at a time, the tester will only send CONFIG GET commands with one parameter at a time.
 
-You don't need to read the RDB file in this stage, you only need to store dir and dbfilename. Reading from the file will be covered in later stages.
+we don't need to read the RDB file in this stage, we only need to store dir and dbfilename. Reading from the file will be covered in later stages.
 
 
 Stage - 10
-You can remove persistence logic now and go back to stage-8 code to maintain simplicity
+we can remove persistence logic now and go back to stage-8 code to maintain simplicity
 
-In this stage, you'll add support for the TYPE command.
+In this stage, we'll add support for the TYPE command.
 
 The TYPE command
 The TYPE command returns the type of value stored at a given key.
@@ -124,5 +124,54 @@ $ redis-cli TYPE missing_key
 The return value is encoded as a simple string 
 https://redis.io/docs/latest/develop/reference/protocol-spec/#simple-strings
 
-For now, you only need to handle the "string" and "none" types. We'll add support for the "stream" type in the next stage.
+For now, we only need to handle the "string" and "none" types. We'll add support for the "stream" type in the next stage.
 
+Stage-11
+In this stage, we'll add support for creating a Redis stream using the XADD command.
+https://redis.io/docs/latest/develop/data-types/streams/
+Redis Streams & Entries
+Streams are one of the data types that Redis supports. A stream is identified by a key, and it contains multiple entries.
+
+Each entry consists of one or more key-value pairs, and is assigned a unique ID.
+
+For example, if we were using a Redis stream to store real-time data from a temperature & humidity monitor, the contents of the stream might look like this:
+
+entries:
+  - id: 1526985054069-0 # (ID of the first entry)
+    temperature: 36 # (A key value pair in the first entry)
+    humidity: 95 # (Another key value pair in the first entry)
+
+  - id: 1526985054079-0 # (ID of the second entry)
+    temperature: 37 # (A key value pair in the first entry)
+    humidity: 94 # (Another key value pair in the first entry)
+
+  # ... (and so on)
+We'll take a closer look at the format of entry IDs (1526985054069-0 and 1526985054079-0 in the example above) in the upcoming stages.
+
+The XADD command
+The XADD command appends an entry to a stream. If a stream doesn't exist already, it is created.
+
+Here's how it works:
+
+$ redis-cli XADD stream_key 1526919030474-0 temperature 36 humidity 95
+"1526919030474-0" # (ID of the entry created)
+The return value is the ID of the entry created, encoded as a bulk string.
+
+XADD supports other optional arguments, but we won't deal with them in this challenge.
+
+XADD also supports auto-generating entry IDs. We'll add support for that in later stages. For now, we'll only deal with explicit IDs (like 1526919030474-0 in the example above).
+
+ 
+$ redis-cli XADD stream_key 0-1 foo bar
+"0-1"
+
+Server should respond with $3\r\n0-1\r\n, which is 0-1 encoded as a RESP bulk string.
+
+ 
+
+$ redis-cli TYPE stream_key
+"stream"
+Server should respond with +stream\r\n, which is stream encoded as a RESP simple string.
+
+ 
+we still need to handle the "string" and "none" return values for the TYPE command. "stream" should only be returned for keys that are streams.

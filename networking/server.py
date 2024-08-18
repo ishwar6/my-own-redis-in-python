@@ -8,7 +8,8 @@ class InMemoryStore:
     """
     def __init__(self):
         self.store = {}
-        self.type_store = {}  # Store the type of each key
+        # Store the type of each key
+        self.type_store = {}  
         self.expiration_store = {}
 
     def set(self, key, value, expiration_time=None):
@@ -16,8 +17,8 @@ class InMemoryStore:
         Store a key-value pair with an optional expiration time.
         """
         self.store[key] = value
-         # we are going to assume all values are strings for now
-        self.type_store[key] = "string" 
+        # Assume all values are strings for now
+        self.type_store[key] = "string"  
         if expiration_time:
             self.expiration_store[key] = time.time() * 1000 + expiration_time  
 
@@ -48,6 +49,18 @@ class InMemoryStore:
         """
         return self.type_store.get(key, "none")
 
+    def add_stream_entry(self, key, entry_id, fields):
+        """
+        Add an entry to the stream stored at the key. If the stream doesn't exist, create it.
+        """
+        if key not in self.store:
+            self.store[key] = []  # Initialize an empty list for the stream
+            self.type_store[key] = "stream"
+        
+        stream = self.store[key]
+        entry = {"id": entry_id, **fields}
+        stream.append(entry)
+        return entry_id
 
 class RESPParser:
     """
@@ -74,12 +87,11 @@ class RESPParser:
                 i += 1
         return elements if len(elements) == num_elements else None
 
-
 class RedisServer:
     """
     Class to represent the Redis-like server, handling client connections and commands.
     """
-    def __init__(self, host="localhost", port=6380):
+    def __init__(self, host="localhost", port=6379):
         self.store = InMemoryStore()
         self.host = host
         self.port = port
@@ -127,6 +139,8 @@ class RedisServer:
             self.handle_get_command(conn, command)
         elif cmd_name == "type":
             self.handle_type_command(conn, command)
+        elif cmd_name == "xadd":
+            self.handle_xadd_command(conn, command)
 
     def handle_set_command(self, conn, command):
         """
@@ -162,6 +176,17 @@ class RedisServer:
         value_type = self.store.get_type(key)
         conn.send(f"+{value_type}\r\n".encode())
 
+    def handle_xadd_command(self, conn, command):
+        """
+        Handle the XADD command to append an entry to a stream.
+        """
+        key = command[1]
+        entry_id = command[2]
+        # Convert remaining arguments to key-value pairs
+        fields = dict(zip(command[3::2], command[4::2]))  
+
+        added_entry_id = self.store.add_stream_entry(key, entry_id, fields)
+        conn.send(f"${len(added_entry_id)}\r\n{added_entry_id}\r\n".encode())
 
 def main():
     server = RedisServer()
