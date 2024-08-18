@@ -66,10 +66,14 @@ class RedisServer:
     """
     Class to represent the Redis-like server, handling client connections and commands.
     """
-    def __init__(self, host="localhost", port=6379):
+    def __init__(self, host="localhost", port=6380, rdb_dir="/tmp/redis-data", dbfilename="rdbfile"):
         self.store = InMemoryStore()
         self.host = host
         self.port = port
+        self.config = {
+            "dir": rdb_dir,
+            "dbfilename": dbfilename
+        }
 
     def start(self):
         """
@@ -113,6 +117,8 @@ class RedisServer:
             self.handle_set_command(conn, command)
         elif cmd_name == "get":
             self.handle_get_command(conn, command)
+        elif cmd_name == "config" and len(command) > 2:
+            self.handle_config_get(conn, command)
 
     def handle_set_command(self, conn, command):
         """
@@ -139,6 +145,18 @@ class RedisServer:
             conn.send(b"$-1\r\n")
         else:
             conn.send(f"${len(value)}\r\n{value}\r\n".encode())
+
+    def handle_config_get(self, conn, command):
+        """
+        Handle the CONFIG GET command to retrieve configuration parameters.
+        """
+        param = command[2].lower()
+        if param in self.config:
+            value = self.config[param]
+            response = f"*2\r\n${len(param)}\r\n{param}\r\n${len(value)}\r\n{value}\r\n"
+            conn.send(response.encode())
+        else:
+            conn.send(b"$-1\r\n")
 
 def main():
     server = RedisServer()
