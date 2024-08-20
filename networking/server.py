@@ -9,7 +9,6 @@ def main():
     while True:
         request: bytes = conn.recv(512)
         data:str = request.decode()
-
         if "ping" in data.lower():
             conn.send("+PONG\r\n".encode())
 
