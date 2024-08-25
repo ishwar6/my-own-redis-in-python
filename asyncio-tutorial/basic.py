@@ -10,7 +10,6 @@ async def do_something_else():
     print("doing something else")
 
 
-
 def main() -> None:
     loop  = asyncio.get_event_loop()
     loop.run_until_complete(do_io())
