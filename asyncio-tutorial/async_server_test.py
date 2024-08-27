@@ -8,7 +8,6 @@ async def client_task():
 
     response = await reader.read(1024)
     print(f"Client received: {response.decode('utf-8')}")
-
     writer.close()
     await writer.wait_closed()
 
